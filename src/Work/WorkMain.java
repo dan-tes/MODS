@@ -27,6 +27,7 @@ public class WorkMain implements  Runnable{
     private double Y = 0;
     private double Xo = 0;
     private double Yo = 0;
+    private boolean running = true;
 
     public WorkMain(){
         workFrame = new  WorkFrame(this);
@@ -99,7 +100,7 @@ public class WorkMain implements  Runnable{
 
     @Override
     public void run() {
-        while (true){
+        while (running){
             Date date = new Date();
             long ti = date.getTime();
             // перерасчёт координат
@@ -124,7 +125,7 @@ public class WorkMain implements  Runnable{
     }
     // остановка процесса модуляции
     public void noPaint(){
-        thread.stop();
+        running = false;
         mass = -1;
         Agr = -1;
         F = -1;
