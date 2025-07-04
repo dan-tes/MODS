@@ -2,57 +2,13 @@ package Work;
 
 import java.util.Date;
 
-public class WorkMain implements  Runnable{
-    private static final int MAXY = 445; // Максимольное значение отдаления точки по оси OY
-    private static final int MAXX = 800; // Максимольное значение отдаления точки по оси OX
-    private int mass  = -1; // масса материальной точки
-    private int V  = -1; // скорсть материальной точки
-    private int Vgr  = -1; // направление скорости материальной точки
-    private int A  = -1; // ускорение материальной точки
-    private int Agr  = -1; // направление ускорения материальной точки
-    private int F  = -1; // геометрическая сумма сил материальной точки
-    private int Fgr = -1; // направление геометрической суммы сил материальной точки
-    private double T = 1000; // относительное програмное время
-    private double Vx = 0;  // скорсть относительно оси OX
-    private double Vy = 0; // скорсть относительно оси OY
-    private double Vxo = 0;
-    private double Vyo = 0;
+public class WorkMain implements Runnable {
+    private static final int MAXY = 445;
+    private static final int MAXX = 800;
 
-    public int getMass() {
-        return mass;
-    }
-
-    public int getV() {
-        return V;
-    }
-
-    public void setV(int v) {
-        V = v;
-    }
-
-    public int getVgr() {
-        return Vgr;
-    }
-
-    public void setVgr(int vgr) {
-        Vgr = vgr;
-    }
-
-    public int getA() {
-        return A;
-    }
-
-    public void setA(int a) {
-        A = a;
-    }
-
-    public int getAgr() {
-        return Agr;
-    }
-
-    public void setAgr(int agr) {
-        Agr = agr;
-    }
+    private int mass = -1;
+    private int V = -1;
+    private int Vgr = -1;
 
     public double getVx() {
         return Vx;
@@ -70,20 +26,138 @@ public class WorkMain implements  Runnable{
         Vy = vy;
     }
 
-    public double getVxo() {
-        return Vxo;
+    private int A = -1;
+    private int Agr = -1;
+    private int F = -1;
+    private int Fgr = -1;
+
+    private double T = 1000;
+    private double Vx = 0, Vy = 0;
+    private double Vxo = 0, Vyo = 0;
+    private double Ax = 0, Ay = 0;
+    private double To = 0;
+
+    private final double delTime = 0.042;
+    private double X = 0, Y = 0;
+    private double Xo = 0, Yo = 0;
+
+    private Thread thread;
+    private boolean running = true;
+
+    private GraphicsEngine graphicsEngine;
+
+    public WorkMain() {
+        graphicsEngine = new GraphicsEngine(this);
     }
 
-    public void setVxo(double vxo) {
-        Vxo = vxo;
+    // Сеттеры
+    public void setX(int x) { X = x; }
+    public void setY(int y) { Y = y; }
+    public void setA(int a, int agr) { A = a; Agr = agr; }
+    public void setT(int t) { T = t; }
+    public void setMass(int mass) { this.mass = mass; }
+    public void setF(int f, int fgr) { F = f; Fgr = fgr; }
+    public void setV(int v, int vgr) { V = v; Vgr = vgr; }
+
+    public boolean startModeling() {
+        if (V == -1 && (A == -1 && (F == -1 || mass == -1))) {
+            reset();
+            return false;
+        }
+
+        if (A == -1 && F != -1 && mass != -1) {
+            A = F / mass;
+            Agr = Fgr;
+        }
+
+        if (V != -1) {
+            Vx = Math.cos(Math.toRadians(Vgr)) * V;
+            Vy = Math.sin(Math.toRadians(Vgr)) * V;
+        }
+
+        if (A != -1) {
+            Ax = Math.cos(Math.toRadians(Agr)) * A;
+            Ay = Math.sin(Math.toRadians(Agr)) * A;
+        }
+
+        running = true;
+        Xo = X; Yo = Y;
+        Vxo = Vx; Vyo = Vy;
+        T /= 1000;
+        To = T;
+
+        graphicsEngine.render(new MechanicalParameters((int) X, (int) Y, V, Vgr));
+        thread = new Thread(this);
+        thread.start();
+        return true;
     }
 
-    public double getVyo() {
-        return Vyo;
+    public Point pause() {
+        double x = X, y = Y;
+        stop();
+        X = x;
+        Y = y;
+        return new Point(x, y);
     }
 
-    public void setVyo(double vyo) {
-        Vyo = vyo;
+    @Override
+    public void run() {
+        while (running) {
+            Date date = new Date();
+            long ti = date.getTime();
+
+            X = (permutationCoordinatesX() * T) * delTime + X;
+            Y = (permutationCoordinatesY() * T) * delTime + Y;
+
+            if (X < 0 || Y < 0 || X > MAXX || Y > MAXY) {
+                X = Xo;
+                Y = Yo;
+                T = To;
+                Vx = Vxo;
+                Vy = Vyo;
+            }
+
+            V = (int) Math.sqrt(Vx * Vx + Vy * Vy);
+            Vgr = (int) Math.toDegrees(Math.atan2(Vy, Vx));
+            if (Vy < 0) Vgr = 360 + Vgr;
+
+            graphicsEngine.render(new MechanicalParameters((int) X, (int) Y, V, Vgr));
+
+            if (ti + delTime * 1000 > date.getTime()) {
+                try {
+                    Thread.sleep((long) (ti + delTime * 1000 - date.getTime()));
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    public void stop() {
+        running = false;
+    }
+
+    public void reset() {
+        stop();
+        mass = -1; A = -1; Agr = -1;
+        F = -1; Fgr = -1;
+        V = -1; Vgr = -1;
+        T = 1000;
+        X = 0; Y = 0;
+    }
+
+    private double permutationCoordinatesX() {
+        if (A < 0) return Vx;
+        double v = Vx;
+        Vx += Ax * T;
+        return v;
+    }
+
+    private double permutationCoordinatesY() {
+        if (A < 0) return Vy;
+        double v = Vy;
+        Vy += Ay * T;
+        return v;
     }
 
     public double getAx() {
@@ -100,156 +174,5 @@ public class WorkMain implements  Runnable{
 
     public void setAy(double ay) {
         Ay = ay;
-    }
-
-    private double Ax = 0;// ускорение материальной точки по оси OX
-    private double Ay = 0;// ускорение материальной точки по оси OY
-    private double To = 0;
-    private final double delTime = 0.042;// чатота обновления
-    private Thread thread;
-    WorkFrame workFrame;
-    private double X = 0; // стартовая координата
-    private double Y = 0;
-    private double Xo = 0;
-    private double Yo = 0;
-    private boolean running = true;
-
-    public WorkMain(){
-        workFrame = new  WorkFrame(this);
-    }
-    // Устоновщики значений
-    public void setY(int y) {
-        Y = y;
-    }
-
-    public void setX(int x) {
-        X = x;
-    }
-
-    public void setA(int a, int agr) {
-        A = a;
-        Agr = agr;
-    }
-
-    public void setT(int t) {
-        T = t;
-    }
-
-    public void setMass(int mass) {
-        this.mass = mass;
-    }
-
-    public void setF(int f, int fgr) {
-        F = f;
-        Fgr = fgr;
-    }
-
-    public void setV(int v, int vgr) {
-        V = v;
-        Vgr = vgr;
-    }
-    // старт процесса модуляции
-    public boolean startModeling() {
-        if (V == -1 && (A == -1 && (F == -1 || mass == -1))) { // проверка достаточно ли введёных значений для старта
-            mass = -1;
-            Vgr = 0;
-            Agr = -1;
-            F = -1;
-            Fgr = -1;
-            T = 1000;
-            return false;
-        }
-        if (A == -1 && F != -1 && mass != -1) {
-            A = F / mass;
-            Agr = Fgr;
-        }
-        if (V != -1) {
-            Vx = Math.cos(Math.toRadians(Vgr)) * V;
-            Vy = Math.sin(Math.toRadians(Vgr)) * V;
-        }
-        if (A != -1){
-            Ax = Math.cos(Math.toRadians(Agr)) * A;
-            Ay = Math.sin(Math.toRadians(Agr)) * A;
-        }
-        running = true;
-        Xo = X;
-        Vxo = Vx;
-        Vyo = Vy;
-        Yo =  Y;
-        T /= 1000;
-        To = T;
-        workFrame.paint(new MechanicalParameters((int) X, (int) Y, V, Vgr));
-        thread = new Thread(this);
-        thread.start();
-        return true;
-    }
-    public Point pause(){
-        double x = X, y = Y;
-        noPaint();
-        X = x;
-        Y = y;
-        return new Point(x, y);
-    }
-
-    @Override
-    public void run() {
-        while (running){
-            Date date = new Date();
-            long ti = date.getTime();
-            // перерасчёт координат
-            X = (permutationCoordinatesX() * T) * delTime + X;
-            Y = (permutationCoordinatesY() * T) * delTime + Y;
-            if (X < 0 || Y < 0 || X > MAXX || Y > MAXY) { //
-                X = Xo;
-                Y = Yo;
-                T = To;
-                Vx = Vxo;
-                Vy = Vyo;
-            }
-            V = (int) Math.sqrt(Vx * Vx + Vy * Vy);
-            Vgr = (int) Math.toDegrees(Math.atan2(Vy, Vx));
-            if (Vy < 0)
-                Vgr = 360 + Vgr;
-            MechanicalParameters parameters = new MechanicalParameters((int) X, (int) Y, (int) V, (int) Vgr);
-            if (ti + delTime * 1000 > date.getTime()) {
-                try {
-                    Thread.sleep((long) (ti + delTime * 1000 - date.getTime())); // небольшая временная остановка
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-            workFrame.paint(parameters);
-        }
-    }
-    // остановка процесса модуляции
-    public void noPaint(){
-        running = false;
-        mass = -1;
-        Agr = -1;
-        F = -1;
-        Fgr = -1;
-        T = 1000;
-        A = -1;
-        Vgr = -1;
-        V = -1;
-        X = 0;
-        Y = 0;
-    }
-    // перерасчёт скорости
-    private double permutationCoordinatesY() {
-        if (A < 0){
-            return Vy;
-        }
-        double v = Vy;
-        Vy += Ay * T;
-        return v;
-    }
-    private double permutationCoordinatesX() {
-        if (A < 0){
-            return Vx;
-        }
-        double v = Vx;
-        Vx += Ax * T;
-        return v;
     }
 }
