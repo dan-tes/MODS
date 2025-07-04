@@ -2,234 +2,285 @@ package Work;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.Objects;
-import java.util.Scanner;
-import java.util.Vector;
+import java.util.*;
+import java.util.List;
+
+class SpinnerNumberModelDefault extends SpinnerNumberModel {
+    public int getDefault_val() {
+        return default_val;
+    }
+
+    int default_val;
+
+    SpinnerNumberModelDefault(int val, int min, int max, int step, int default_val) {
+        super(val, min, max, step);
+        this.default_val = default_val;
+    }
+}
 
 class WorkFrame extends JFrame {
-    JPanel setPanel;
+    private static final int POINT_RADIUS = 5;
 
-    JPanel getPanel;
-    //    int Height, Setting.Width;
-    JSpinner[][] spinners;
-    int spin = 0;
-    String[] strut;
-    private int X = -1, Y = -1; // координаты точки
-    private static final int R = 5; // радиус точки
-    WorkMain workMain;
-    boolean flagBig = true; // состояние программы
+    private final JPanel controlPanel;
+    private final JPanel drawPanel;
+    private final JSpinner[][] spinners;
+    private final String[] selectedMetrics;
+    private int selectedCount = 0;
+    private boolean isModelRunning = false;
+    Vector<String> metricOptions = new Vector<>(List.of(
+            "Скорость м/с", "Ускорение м/с2", "Время мс", "X м", "Y м" // , "Сила Н", "Масса кг"
+    ));
+    Set<String> vectorMetrics = Set.of("Скорость м/с", "Ускорение м/с2"); // "Сила Н"
+    private int pointX = -1;
+    private int pointY = -1;
 
-    WorkFrame(WorkMain workMain) {
+    private final WorkMain workMain;
+
+    public WorkFrame(WorkMain workMain) {
         this.workMain = workMain;
-        setLayout(new BorderLayout());
-        setPanel = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                g.setColor(Color.WHITE);
-                g.fillRect(0, 0, 1000, 1000);
+        this.setLayout(new BorderLayout());
 
-            }
-        };
-        // все векторные величины
-        String vector = """
-                Сила Н
-                Скорость м/с
-                Ускорение м/с2
-                """;
-        setPanel.setLayout(new FlowLayout());
-        // все величины
-        Scanner scanner = new Scanner("""
-                Ничего не выбрано
-                Сила Н
-                Масса кг
-                Скорость м/с
-                Ускорение м/с2
-                Время мс
-                X м
-                Y м
-                """);
-        Vector<String> metrics = new Vector<>();
-        while (scanner.hasNextLine()) {
-            metrics.add(scanner.nextLine());
-        }
-        int n = metrics.toArray().length;
-        spinners = new JSpinner[n][];
-        strut = new String[n];
-        JComboBox<String> jComboBox = new JComboBox<>(metrics);
-        jComboBox.addActionListener(e -> {
-            if (jComboBox.getSelectedIndex() != 0) {
-                String s = jComboBox.getItemAt(jComboBox.getSelectedIndex());
-                jComboBox.removeItem(s);
-                if (!vector.contains(s))
-                    spinners[spin] = newElement(s, setPanel, true);
-                else
-                    spinners[spin] = newElement(s, setPanel, false);
-                jComboBox.setSelectedIndex(0);
-                strut[spin++] = s;
-            }
-        });
-        JButton button_again = new JButton("Начать заново");
-        setPanel.add(jComboBox);
-        JButton button = new JButton("Начать моделирование");
-        button.addActionListener(e -> {
-            if (flagBig) {
-                for (int i = 0; i < spin; i++) {
-                    // сбор данных и их отправка в workmain
-                    switch (strut[i]) {
-                        case "Ускорение м/с2" ->
-                                workMain.setA((int) spinners[i][0].getValue(), (int) spinners[i][1].getValue());
-                        case "Сила Н" ->
-                                workMain.setF((int) spinners[i][0].getValue(), (int) spinners[i][1].getValue());
-                        case "Масса кг" -> workMain.setMass((int) spinners[i][0].getValue());
-                        case "Скорость м/с" ->
-                                workMain.setV((int) spinners[i][0].getValue(), (int) spinners[i][1].getValue());
-                        case "Время мс" -> workMain.setT((int) spinners[i][0].getValue());
-                        case "X м" -> workMain.setX((int) spinners[i][0].getValue());
-                        case "Y м" -> workMain.setY((int) spinners[i][0].getValue());
-                    }
-                }
-                if (!workMain.startModeling()) {
-                    setPanel.removeAll();
-                    es:
-                    for (String s : metrics) {
-                        for (int j = 0; j <= jComboBox.getMaximumRowCount(); j++) {
-                            if (Objects.equals(s, jComboBox.getItemAt(j)))
-                                continue es;
-                        }
-                        jComboBox.addItem(s);
-                    }
-                    setPanel.add(jComboBox);
-                    setPanel.add(button);
-                    setPanel.add(button_again);
-                    repaint();
-                } else {
-                    button.setText("Закрыть модель");
-                    flagBig = false;
-                    restart(button_again, jComboBox, false);
-                }
-            } else {
-                workMain.noPaint();
-                restart(button_again, jComboBox, true);
-                button.setText("Начать моделирование");
-                X = -1;
-                Y = -1;
-                repaint();
-                flagBig = true;
-            }
-        });
-        button.setPreferredSize(new Dimension(180, 25));
-        setPanel.add(button);
-        button_again.setPreferredSize(new Dimension(180, 25));
-        button_again.addActionListener(e -> {
-            setPanel.removeAll();
-            es:
-            for (String s : metrics) {
-                for (int j = 0; j <= jComboBox.getMaximumRowCount(); j++) {
-                    if (Objects.equals(s, jComboBox.getItemAt(j)))
-                        continue es;
-                }
-                jComboBox.addItem(s);
-            }
-            setPanel.add(jComboBox);
-            setPanel.add(button);
-            setPanel.add(button_again);
-            repaint();
-        });
-        setPanel.add(button_again);
-        setPanel.setPreferredSize(new Dimension(200, Settings.Height));
-        add(setPanel, BorderLayout.WEST);
-        getPanel = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g); // прорисовка компонентов
-                g.setColor(Color.BLACK);
-                g.fillRect(0, 0, 5, 2000);
-                g.setColor(Color.WHITE);
-                g.fillRect(5, 0, Settings.Width - 200, Settings.Height);
-                g.setColor(Color.BLACK);
-                g.fillRect(15, 5, 5, Settings.Height - 55);
-                g.fillRect(15, Settings.Height - 50, Settings.Width - 400, 5);
-                g.setColor(Color.RED);
-                if (!flagBig) {
-                    g.fillOval(X, Y, R, R);
-                    if (Settings.show_vector) {
-                        Work.Vector vector_v = new Work.Vector(X + R / 2, Y + R / 2, X + (int) workMain.getVx() + R / 2, Y - (int) workMain.getVy() + R / 2);
-                        vector_v.normalize();
-                        Work.Vector vector_a = new Work.Vector(X + R / 2, Y + R / 2, X + (int) workMain.getAx() + R / 2, Y - (int) workMain.getAy() + R / 2);
-                        vector_a.normalize();
-                        g.setColor(Color.BLUE);
-                        g.drawLine(vector_v.x1, vector_v.y1, vector_v.x2, vector_v.y2);
-                        g.drawLine(vector_a.x1, vector_a.y1, vector_a.x2, vector_a.y2);
-                    }
-                }
-            }
-        };
-        getPanel.setPreferredSize(new Dimension(Settings.Width - Settings.Width * 2 / 7, Settings.Height));
-        add(getPanel, BorderLayout.CENTER);
-        setSize(new Dimension(Settings.Width, Settings.Height));
+        spinners = new JSpinner[metricOptions.size()][];
+        selectedMetrics = new String[metricOptions.size()];
+
+        controlPanel = createControlPanel();
+        drawPanel = createDrawPanel();
+
+        this.add(controlPanel, BorderLayout.WEST);
+        this.add(drawPanel, BorderLayout.CENTER);
+
+        setSize(Settings.Width, Settings.Height);
         setTitle("MODS");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setVisible(true);
     }
 
-    // рестарт списка настроек точки
-    private void restart(JButton button_again, JComponent comboBox, boolean b) {
-        for (JSpinner[] spinner : spinners)
-            if (spinner != null)
-                for (JSpinner jSpinner : spinner) jSpinner.setEnabled(b);
-        button_again.setEnabled(b);
-        comboBox.setEnabled(b);
+    private JPanel createControlPanel() {
+        JPanel panel = new JPanel(new FlowLayout()) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                g.setColor(Color.WHITE);
+                g.fillRect(0, 0, 1000, 1000);
+            }
+        };
+        panel.setPreferredSize(new Dimension(220, Settings.Height));
+
+
+        JButton startButton = new JButton("Начать моделирование");
+        JButton pauseButton = new JButton("Пауза");
+
+
+        startButton.setPreferredSize(new Dimension(180, 25));
+        startButton.addActionListener(e -> handleModelStartOrStop(startButton, metricOptions, pauseButton));
+
+
+        pauseButton.setPreferredSize(new Dimension(180, 25));
+        pauseButton.addActionListener(e -> pauseControlPanel(panel, metricOptions, pauseButton));
+        pauseButton.setEnabled(false);
+
+        panel.add(startButton);
+        panel.add(pauseButton);
+        for (String metric : metricOptions) {
+            boolean isVector = vectorMetrics.contains(metric);
+            spinners[selectedCount] = addInputField(panel, metric, isVector);
+            selectedMetrics[selectedCount++] = metric;
+        }
+        return panel;
     }
 
-    // настройка сбора информации
-    private JSpinner[] newElement(String name, JPanel panel, boolean check) {
-        JLabel label = new JLabel();
-        JSpinner spinner = new JSpinner();
-        label.setText(name + "-");
-        if (check) {
-            label.setPreferredSize(new Dimension(100, 25));
-            spinner.setPreferredSize(new Dimension(70, 25));
-            spinner.addChangeListener(e -> {
-                if ((int) spinner.getValue() < 0) {
-                    spinner.setValue(0);
-                }
-            });
-            panel.add(label);
-            panel.add(spinner);
-            revalidate();
-            return new JSpinner[]{spinner};
+    private void pauseControlPanel(JPanel panel, Vector<String> metricOptions, JButton pauseButton) {
+        if (pauseButton.getText().equals("Пауза")) {
+            pauseButton.setText("Продолжить");
+            toggleInputs(true);
+            workMain.pause();
         } else {
-            label.setPreferredSize(new Dimension(90, 25));
-            spinner.setPreferredSize(new Dimension(35, 25));
-            JLabel labelGr = new JLabel("Гр-");
-            JSpinner spinnerGr = new JSpinner();
-            spinnerGr.addChangeListener(e -> {
-                int n = (int) spinnerGr.getValue();
-                if (n < 0 || n > 360) { // границы
-                    spinnerGr.setValue(0);
-                }
-            });
-            spinner.addChangeListener(e -> {
-                if ((int) spinner.getValue() < 0) { // границы
-                    spinner.setValue(0);
-                }
-            });
-            spinnerGr.setPreferredSize(new Dimension(35, 25));
-            panel.add(label);
-            panel.add(spinner);
-            panel.add(labelGr);
-            panel.add(spinnerGr);
-            revalidate();
-            return new JSpinner[]{spinner, spinnerGr};
+            pauseButton.setText("Пауза");
+            toggleInputs(false);
+            handler_spinner();
+            workMain.startModeling();
         }
     }
 
-    // замена координат и перерисовка точки
-    public void paint(double x, double y) {
-        Point ransform_point = Point.changing_coordinate_system(x, y);
-        X = (int) ransform_point.getX();
-        Y = (int) ransform_point.getY();
+    private JPanel createDrawPanel() {
+        return new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+
+                g.setColor(Color.BLACK);
+                g.fillRect(0, 0, 5, 2000);
+
+                g.setColor(Color.WHITE);
+                g.fillRect(5, 0, Settings.Width - 200, Settings.Height);
+
+                g.setColor(Color.BLACK);
+                g.fillRect(15, 5, 5, Settings.Height - 55);
+                g.fillRect(15, Settings.Height - 50, Settings.Width - 400, 5);
+
+                if (isModelRunning) {
+                    g.setColor(Color.RED);
+                    g.fillOval(pointX, pointY, POINT_RADIUS, POINT_RADIUS);
+
+                    if (Settings.show_vector) {
+                        drawVector(g, workMain.getVx(), workMain.getVy(), Color.BLUE);
+                        drawVector(g, workMain.getAx(), workMain.getAy(), Color.ORANGE);
+                    }
+                }
+            }
+        };
+    }
+
+    private void drawVector(Graphics g, double vx, double vy, Color color) {
+        MaterialVector vector = new MaterialVector(
+                pointX + POINT_RADIUS / 2,
+                pointY + POINT_RADIUS / 2,
+                pointX + (int) vx + POINT_RADIUS / 2,
+                pointY - (int) vy + POINT_RADIUS / 2
+        );
+        vector.normalize();
+        g.setColor(color);
+        g.drawLine(vector.x1, vector.y1, vector.x2, vector.y2);
+    }
+
+    private void handleModelStartOrStop(JButton startButton, Vector<String> originalOptions, JButton pauseButton) {
+        if (!isModelRunning) {
+            handler_spinner();
+
+            if (!workMain.startModeling()) {
+                return;
+            }
+            pauseButton.setEnabled(true);
+            startButton.setText("Закрыть модель");
+            toggleInputs(false);
+            isModelRunning = true;
+        } else {
+            workMain.noPaint();
+            toggleInputs(true);
+
+            startButton.setText("Начать моделирование");
+            pointX = pointY = -1;
+            for (JSpinner[] spinner : spinners) {
+                System.out.println(Arrays.deepToString(spinner));
+
+                for (JSpinner jSpinner : spinner) {
+                    SpinnerNumberModelDefault model = (SpinnerNumberModelDefault) jSpinner.getModel();
+                    jSpinner.setValue(model.getDefault_val());
+
+                }
+            }
+            pauseButton.setEnabled(false);
+            pauseButton.setText("Пауза");
+            revalidate();
+            repaint();
+
+            isModelRunning = false;
+        }
+    }
+
+    private void handler_spinner() {
+        for (int i = 0; i < selectedCount; i++) {
+            String type = selectedMetrics[i];
+            switch (type) {
+                case "Ускорение м/с2" -> workMain.setA(getVal(i, 0), getVal(i, 1));
+//                    case "Сила Н" -> workMain.setF(getVal(i, 0), getVal(i, 1));
+//                    case "Масса кг" -> workMain.setMass(getVal(i, 0));
+                case "Скорость м/с" -> workMain.setV(getVal(i, 0), getVal(i, 1));
+                case "Время мс" -> workMain.setT(getVal(i, 0));
+                case "X м" -> workMain.setX(getVal(i, 0));
+                case "Y м" -> workMain.setY(getVal(i, 0));
+            }
+        }
+    }
+
+
+    private void toggleInputs(boolean enabled) {
+        for (JSpinner[] row : spinners) {
+            if (row != null) {
+                for (JSpinner spinner : row) {
+                    spinner.setEnabled(enabled);
+                }
+            }
+        }
+    }
+
+    private int getVal(int idx, int sub) {
+        return (int) spinners[idx][sub].getValue();
+    }
+
+    private void setVal(int idx, int sub, int val) {
+        spinners[idx][sub].setValue(val);
+    }
+
+    private JSpinner[] addInputField(JPanel panel, String name, boolean isVector) {
+        int default_val = 0;
+        if (Objects.equals(name, "Время мс")) {
+            default_val = 1000;
+        } else if (Objects.equals(name, "Скорость м/с") && Settings.testing) {
+            default_val = 30;
+        }
+        JPanel panel_input = new JPanel();
+        panel_input.setBackground(Color.WHITE);
+        panel_input.setPreferredSize(new Dimension(220, 40));
+        JLabel label = new JLabel(name + "-");
+        panel_input.add(label);
+
+        if (!isVector) {
+            JSpinner spinner = createSpinner(default_val);
+            panel_input.add(spinner);
+            panel.add(panel_input);
+
+            revalidate();
+            return new JSpinner[]{spinner};
+        } else {
+            JSpinner mag = createSpinner(default_val);
+            JSpinner angle = createAngleSpinner();
+
+            JLabel angleLabel = new JLabel("Гр-");
+            panel_input.add(mag);
+            panel_input.add(angleLabel);
+            panel_input.add(angle);
+            panel.add(panel_input);
+
+            revalidate();
+            return new JSpinner[]{mag, angle};
+        }
+    }
+
+    private JSpinner createSpinner(int default_val) {
+        SpinnerNumberModel model = new SpinnerNumberModelDefault(default_val, 0, 9999, 1, default_val);
+        JSpinner spinner = new JSpinner(model);
+        spinner.setPreferredSize(new Dimension(35, 25));
+        return spinner;
+    }
+
+
+    private JSpinner createAngleSpinner() {
+        SpinnerNumberModel model = new SpinnerNumberModelDefault(0, 0, 360, 1, 0);
+        JSpinner spinner = new JSpinner(model);
+
+        spinner.setPreferredSize(new Dimension(35, 25));
+        return spinner;
+    }
+
+    public void paint(MechanicalParameters parameters) {
+        if (!isModelRunning)
+            return;
+        Point point = Point.changing_coordinate_system(parameters.getX(), parameters.getY());
+        this.pointX = (int) point.getX();
+        this.pointY = (int) point.getY();
+
+        for (int i = 0; i < selectedCount; i++) {
+            String type = selectedMetrics[i];
+            switch (type) {
+                case "Скорость м/с" -> {
+                    setVal(i, 0, parameters.getV());
+                    setVal(i, 1, parameters.getAgree_v());
+                }
+                case "X м" -> setVal(i, 0, parameters.getX());
+                case "Y м" -> setVal(i, 0, parameters.getY());
+            }
+        }
         repaint();
     }
 }

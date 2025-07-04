@@ -115,12 +115,6 @@ public class WorkMain implements  Runnable{
     private boolean running = true;
 
     public WorkMain(){
-        if (Settings.testing) {
-            setX(10);
-            setY(10);
-            setV(150, 45);
-            setA(10, 270);
-        }
         workFrame = new  WorkFrame(this);
     }
     // Устоновщики значений
@@ -184,10 +178,17 @@ public class WorkMain implements  Runnable{
         Yo =  Y;
         T /= 1000;
         To = T;
-        workFrame.paint(X, Y);
+        workFrame.paint(new MechanicalParameters((int) X, (int) Y, V, Vgr));
         thread = new Thread(this);
         thread.start();
         return true;
+    }
+    public Point pause(){
+        double x = X, y = Y;
+        noPaint();
+        X = x;
+        Y = y;
+        return new Point(x, y);
     }
 
     @Override
@@ -205,6 +206,11 @@ public class WorkMain implements  Runnable{
                 Vx = Vxo;
                 Vy = Vyo;
             }
+            V = (int) Math.sqrt(Vx * Vx + Vy * Vy);
+            Vgr = (int) Math.toDegrees(Math.atan2(Vy, Vx));
+            if (Vy < 0)
+                Vgr = 360 + Vgr;
+            MechanicalParameters parameters = new MechanicalParameters((int) X, (int) Y, (int) V, (int) Vgr);
             if (ti + delTime * 1000 > date.getTime()) {
                 try {
                     Thread.sleep((long) (ti + delTime * 1000 - date.getTime())); // небольшая временная остановка
@@ -212,7 +218,7 @@ public class WorkMain implements  Runnable{
                     e.printStackTrace();
                 }
             }
-            workFrame.paint(X, Y);
+            workFrame.paint(parameters);
         }
     }
     // остановка процесса модуляции
