@@ -207,7 +207,7 @@ public class WorkMain implements  Runnable{
             }
             if (ti + delTime * 1000 > date.getTime()) {
                 try {
-                    Thread.sleep((long) (ti + delTime * 1000 - date.getTime())); // неболшая временная остановка
+                    Thread.sleep((long) (ti + delTime * 1000 - date.getTime())); // небольшая временная остановка
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }

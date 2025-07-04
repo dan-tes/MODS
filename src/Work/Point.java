@@ -23,10 +23,11 @@ public class Point {
     public void setY(double y) {
         this.y = y;
     }
-    public static Point СhangingСoordinateSystem(double x, double y){
+    public static Point changing_coordinate_system(double x, double y){
         int X = (int) x + 20;
         int Y = (int) (Height - y - 55);
 
         return new Point(X, Y);
     }
+
 }

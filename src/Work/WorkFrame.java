@@ -153,14 +153,16 @@ class WorkFrame extends JFrame {
                 g.setColor(Color.RED);
                 if (!flagBig) {
                     g.fillOval(X, Y, R, R);
-                    Point vector_v = new Point(X + (int) workMain.getVx() + R / 2, Y - (int) workMain.getVy() + R / 2);
-                    Point vector_a = new Point(X + (int) workMain.getAx() + R / 2, Y - (int) workMain.getAy() + R / 2);
-
-                    g.setColor(Color.BLUE);
-                    g.drawLine(X + R / 2, Y + R / 2, (int) vector_v.getX(), (int) vector_v.getY());
-                    g.drawLine(X + R / 2, Y + R / 2, (int) vector_a.getX(), (int) vector_a.getY());
+                    if (Settings.show_vector) {
+                        Work.Vector vector_v = new Work.Vector(X + R / 2, Y + R / 2, X + (int) workMain.getVx() + R / 2, Y - (int) workMain.getVy() + R / 2);
+                        vector_v.normalize();
+                        Work.Vector vector_a = new Work.Vector(X + R / 2, Y + R / 2, X + (int) workMain.getAx() + R / 2, Y - (int) workMain.getAy() + R / 2);
+                        vector_a.normalize();
+                        g.setColor(Color.BLUE);
+                        g.drawLine(vector_v.x1, vector_v.y1, vector_v.x2, vector_v.y2);
+                        g.drawLine(vector_a.x1, vector_a.y1, vector_a.x2, vector_a.y2);
+                    }
                 }
-//                g.fillPolygon(new int[] {X, workMain.g}, new int[] {Y}, 2);
             }
         };
         getPanel.setPreferredSize(new Dimension(Settings.Width - Settings.Width * 2 / 7, Settings.Height));
@@ -225,7 +227,7 @@ class WorkFrame extends JFrame {
 
     // замена координат и перерисовка точки
     public void paint(double x, double y) {
-        Point ransform_point = Point.СhangingСoordinateSystem(x, y);
+        Point ransform_point = Point.changing_coordinate_system(x, y);
         X = (int) ransform_point.getX();
         Y = (int) ransform_point.getY();
         repaint();
