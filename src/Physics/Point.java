@@ -1,6 +1,6 @@
-package Work;
+package Physics;
 
-import static Work.Settings.Height;
+import static Settings.Height;
 
 public class Point {
     double x, y;
