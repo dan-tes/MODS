@@ -17,6 +17,91 @@ public class WorkMain implements  Runnable{
     private double Vy = 0; // скорсть относительно оси OY
     private double Vxo = 0;
     private double Vyo = 0;
+
+    public int getMass() {
+        return mass;
+    }
+
+    public int getV() {
+        return V;
+    }
+
+    public void setV(int v) {
+        V = v;
+    }
+
+    public int getVgr() {
+        return Vgr;
+    }
+
+    public void setVgr(int vgr) {
+        Vgr = vgr;
+    }
+
+    public int getA() {
+        return A;
+    }
+
+    public void setA(int a) {
+        A = a;
+    }
+
+    public int getAgr() {
+        return Agr;
+    }
+
+    public void setAgr(int agr) {
+        Agr = agr;
+    }
+
+    public double getVx() {
+        return Vx;
+    }
+
+    public void setVx(double vx) {
+        Vx = vx;
+    }
+
+    public double getVy() {
+        return Vy;
+    }
+
+    public void setVy(double vy) {
+        Vy = vy;
+    }
+
+    public double getVxo() {
+        return Vxo;
+    }
+
+    public void setVxo(double vxo) {
+        Vxo = vxo;
+    }
+
+    public double getVyo() {
+        return Vyo;
+    }
+
+    public void setVyo(double vyo) {
+        Vyo = vyo;
+    }
+
+    public double getAx() {
+        return Ax;
+    }
+
+    public void setAx(double ax) {
+        Ax = ax;
+    }
+
+    public double getAy() {
+        return Ay;
+    }
+
+    public void setAy(double ay) {
+        Ay = ay;
+    }
+
     private double Ax = 0;// ускорение материальной точки по оси OX
     private double Ay = 0;// ускорение материальной точки по оси OY
     private double To = 0;
@@ -30,6 +115,12 @@ public class WorkMain implements  Runnable{
     private boolean running = true;
 
     public WorkMain(){
+        if (Settings.testing) {
+            setX(10);
+            setY(10);
+            setV(150, 45);
+            setA(10, 270);
+        }
         workFrame = new  WorkFrame(this);
     }
     // Устоновщики значений
@@ -86,6 +177,7 @@ public class WorkMain implements  Runnable{
             Ax = Math.cos(Math.toRadians(Agr)) * A;
             Ay = Math.sin(Math.toRadians(Agr)) * A;
         }
+        running = true;
         Xo = X;
         Vxo = Vx;
         Vyo = Vy;
