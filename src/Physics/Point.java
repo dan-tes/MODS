@@ -1,6 +1,7 @@
 package Physics;
 
-import static Settings.Height;
+
+import static settings.Settings.Height;
 
 public class Point {
     double x, y;
@@ -24,8 +25,8 @@ public class Point {
         this.y = y;
     }
     public static Point changing_coordinate_system(double x, double y){
-        int X = (int) x + 20;
-        int Y = (int) (Height - y - 55);
+        int X = (int) x + 25;
+        int Y = (int) (Height - y - 53);
 
         return new Point(X, Y);
     }

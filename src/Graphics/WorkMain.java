@@ -49,6 +49,14 @@ public class WorkMain implements Runnable {
 
     private GraphicsEngine graphicsEngine;
 
+    public double getX() {
+        return X;
+    }
+
+    public double getY() {
+        return Y;
+    }
+
     public WorkMain() {
         graphicsEngine = new GraphicsEngine(this);
     }
