@@ -1,4 +1,7 @@
-package Work;
+package Graphics;
+
+import Physics.MechanicalParameters;
+import Physics.Point;
 
 import java.util.Date;
 

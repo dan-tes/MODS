@@ -1,4 +1,6 @@
-package Work;
+package Physics;
+
+import Settings;
 
 public class MaterialVector {
     int x1, y1, x2, y2;
@@ -16,15 +18,13 @@ public class MaterialVector {
         double length = Math.sqrt(dx * dx + dy * dy);
 
         if (length == 0) {
-            // Вектор нулевой длины — нормализовать нельзя
             return;
         }
 
         dx /= length;
         dy /= length;
 
-        // Заменяем конец вектора на нормализованную точку
-        x2 = x1 + (int)(dx * Settings.vector_size); // умножаем, чтобы сохранить масштаб (иначе будет очень короткий вектор)
+        x2 = x1 + (int)(dx * Settings.vector_size);
         y2 = y1 + (int)(dy * Settings.vector_size);
     }
 

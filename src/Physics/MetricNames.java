@@ -1,4 +1,4 @@
-package Work;
+package Physics;
 
 public class MetricNames {
     public static final String VELOCITY = "Скорость м/с";

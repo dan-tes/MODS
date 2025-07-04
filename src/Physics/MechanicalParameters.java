@@ -1,4 +1,4 @@
-package Work;
+package Physics;
 
 public class MechanicalParameters {
     int x, y, v, agree_v;

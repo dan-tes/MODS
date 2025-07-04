@@ -1,4 +1,6 @@
-package Work;
+package Graphics;
+
+import Physics.MechanicalParameters;
 
 public class GraphicsEngine {
     private final WorkFrame frame;

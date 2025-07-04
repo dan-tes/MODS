@@ -1,11 +1,15 @@
-package Work;
+package Graphics;
+
+import Physics.MaterialVector;
+import Physics.MechanicalParameters;
+import Physics.Point;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
 
-import static Work.MetricNames.*;
+import static Physics.MetricNames.*;
 
 
 
@@ -236,7 +240,7 @@ class WorkFrame extends JFrame {
 
     public void paint(MechanicalParameters parameters) {
         if (!isModelRunning) return;
-        Point point = Point.changing_coordinate_system(parameters.getX(), parameters.getY());
+        Physics.Point point = Point.changing_coordinate_system(parameters.getX(), parameters.getY());
         this.pointX = (int) point.getX();
         this.pointY = (int) point.getY();
 
