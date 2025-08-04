@@ -1,7 +1,6 @@
-package Graphics;
+package Physics;
 
-import Physics.MechanicalParameters;
-import Physics.Point;
+import Graphics.GraphicsEngine;
 
 import java.util.Date;
 
@@ -160,14 +159,14 @@ public class WorkMain implements Runnable {
     private double permutationCoordinatesX() {
         if (A < 0) return Vx;
         double v = Vx;
-        Vx += Ax * T;
+        Vx += Ax / T;
         return v;
     }
 
     private double permutationCoordinatesY() {
         if (A < 0) return Vy;
         double v = Vy;
-        Vy += Ay * T;
+        Vy += Ay / T;
         return v;
     }
 

@@ -3,14 +3,13 @@ package Graphics;
 import Physics.MaterialVector;
 import Physics.MechanicalParameters;
 import Physics.MetricNames;
+import Physics.WorkMain;
 import settings.Settings;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
-
-import static java.awt.Point.*;
 
 class WorkFrame extends JFrame {
     private static final int POINT_RADIUS = 5;

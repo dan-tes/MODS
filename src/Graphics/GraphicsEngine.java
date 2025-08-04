@@ -1,6 +1,7 @@
 package Graphics;
 
 import Physics.MechanicalParameters;
+import Physics.WorkMain;
 
 public class GraphicsEngine {
     private final WorkFrame frame;
